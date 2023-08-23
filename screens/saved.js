@@ -1,11 +1,12 @@
 import React from 'react'
 import { Text, View } from 'react-native'
+import { ViewMain } from './home'
 
 const Saved = () => {
   return (
-    <View>
+    <ViewMain>
         <Text>Saved</Text>
-    </View>
+    </ViewMain>
   )
 }
 
