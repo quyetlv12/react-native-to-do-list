@@ -5,15 +5,13 @@ import {
   FlatList,
   RefreshControl,
   SafeAreaView,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { Services } from "../services";
-import HttpClient from "../apis/axiosClient";
 
 export const ViewMain = styled(View, "p-[3%]");
 export const InputStyled = styled(
@@ -29,7 +27,10 @@ const Home = () => {
       setData(res.data);
     }
   };
+  const [inputValue, setInputValue] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [isEdit, setIsEdit] = useState(false)
+  const [itemSelect, setItemSelect] = useState(null)
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -38,49 +39,78 @@ const Home = () => {
     }, 2000);
   }, []);
   const handleAddTask = async () => {
-    const res = await Services.addTask({name : inputValue})
+    const res = await Services.addTask({ name: inputValue })
     if (res.status === 201) {
-      onRefresh()
+      getTask()
       setInputValue('')
     }
   }
   const handleDeleteTask = (item) => {
-    Alert.alert('Thông báo' , 'Bạn có chắc chắn muốn xoá task này !'  , [
+    Alert.alert('Thông báo', 'Bạn có chắc chắn muốn xoá task này !', [
       {
-        text : 'Huỷ' ,
-        onPress : () => {}
+        text: 'Huỷ',
+        onPress: () => { }
       },
-      {text: 'Xoá', onPress: async () => {
-        const res = await Services.deleteTask(item.id)
-        if (res.status === 200) {
-          onRefresh()
-        }
-      }},
-    ])
-  };
-  const handelEditTask = async (item) => {
-    Alert.alert('Thông báo' , 'Bạn có chắc chắn muốn lưu task này !'  , [
       {
-        text : 'Huỷ' ,
-        onPress : () => {}
-      },
-      {text: 'Lưu', onPress: async () => {
-        const newData = {
-          name : item.name,
-          taskId : item.id
-        }
-        const resSaveTask = await Services.savedTask(newData)
-        if (resSaveTask.status === 201) {
-          const resUpdateTask = await Services.updateTask(item.id ,{...item , saved : true})
-          if (resUpdateTask.status === 200) {
-            onRefresh()
+        text: 'Xoá', onPress: async () => {
+          const res = await Services.deleteTask(item.id)
+          if (res.status === 200) {
+            getTask()
           }
         }
-      }},
+      },
     ])
-   
   };
-  const [inputValue, setInputValue] = useState("");
+  const handleSaveTask = async (item) => {
+    Alert.alert('Thông báo', 'Bạn có chắc chắn muốn lưu task này !', [
+      {
+        text: 'Huỷ',
+        onPress: () => { }
+      },
+      {
+        text: 'Lưu', onPress: async () => {
+          const newData = {
+            name: item.name,
+            taskId: item.id
+          }
+          const resSaveTask = await Services.savedTask(newData)
+          if (resSaveTask.status === 201) {
+            const resUpdateTask = await Services.updateTask(item.id, { ...item, saved: true })
+            if (resUpdateTask.status === 200) {
+              getTask()
+            }
+          }
+        }
+      },
+    ])
+  };
+  const handleEditTask = () => {
+    Alert.alert('Thông báo', 'Bạn có chắc chắn muốn cập nhật task này !', [
+      {
+        text: 'Huỷ',
+        onPress: () => { }
+      },
+      {
+        text: 'Cập nhật', onPress: async () => {
+          const newData = {
+            ...itemSelect,
+            name: inputValue
+          }
+          const resUpdateTask = await Services.updateTask(itemSelect.id, newData)
+          if (resUpdateTask.status === 200) {
+            getTask()
+            setInputValue('')
+            setIsEdit(false)
+          }
+        }
+      },
+    ])
+  }
+  const handleSelectTagEdit = async (item) => {
+    await setIsEdit(true)
+    await setItemSelect(item)
+    await setInputValue(item.name)
+  }
   useEffect(() => {
     getTask();
   }, []);
@@ -97,20 +127,29 @@ const Home = () => {
             className="pl-6 h-10 flex-1 text-base"
           />
           {
-            inputValue && <TouchableOpacity className="rounded-full pr-5 focus:bg-red-500" onPress={handleAddTask}>
-            <Text>
-              <Ionicons name="add" color={"#000"} size={30} />
-            </Text>
-          </TouchableOpacity>
+            inputValue &&
+            <View>
+              {
+                isEdit ? <TouchableOpacity className="rounded-full pr-5 focus:bg-red-500" onPress={handleEditTask}>
+                  <Text>
+                    <Ionicons name="checkmark-sharp" color={"green"} size={30} />
+                  </Text>
+                </TouchableOpacity> : <TouchableOpacity className="rounded-full pr-5 focus:bg-red-500" onPress={handleAddTask}>
+                  <Text>
+                    <Ionicons name="add" color={"#000"} size={30} />
+                  </Text>
+                </TouchableOpacity>
+              }
+
+            </View>
           }
-       
         </View>
       </SafeAreaView>
       <SafeAreaView>
         <FlatList
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           className="h-full py-2"
           data={data}
           renderItem={({ item }) => (
@@ -122,19 +161,19 @@ const Home = () => {
                     <Ionicons name="trash" size={20} color={"red"} />
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handelEditTask(item)}>
+                <TouchableOpacity onPress={() =>  handleSelectTagEdit(item) }>
                   <Text>
                     <Ionicons name="create" size={20} color={"blue"} />
                   </Text>
                 </TouchableOpacity>
                 {
-                  !item.saved && <TouchableOpacity onPress={() => handelEditTask(item)}>
-                  <Text>
-                    <Ionicons name="save" size={20} color={"red"} />
-                  </Text>
-                </TouchableOpacity>
+                  !item.saved && <TouchableOpacity onPress={() =>handleSaveTask(item)}>
+                    <Text>
+                      <Ionicons name="save" size={20} color={"red"} />
+                    </Text>
+                  </TouchableOpacity>
                 }
-              
+
               </View>
             </View>
           )}
