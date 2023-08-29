@@ -15,5 +15,11 @@ export const Services = {
     },
     updateTask(id , data){
         return HttpClient.put(`/tasks/${id}` , data)
-    }
+    },
+    getSavedTask(){
+        return HttpClient.get('/saved')
+    },
+    deleteSavedTask(id){
+        return HttpClient.delete(`/saved/${id}`)
+    },
 }

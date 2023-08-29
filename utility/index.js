@@ -1,5 +1,7 @@
-// import React from 'react';
-// import { styled } from "nativewind";
-// import { View } from "react-native";
-
-// export const ViewMain = styled(View , 'p-5')
+export const isArrayEmpty = (arr) => {
+    if (!arr) return true
+    if (Array.isArray(arr) && arr.length > 0) {
+      return false
+    }
+    return true
+  }

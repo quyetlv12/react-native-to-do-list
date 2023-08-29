@@ -3,14 +3,23 @@
     "version": ">= 4.1.2"
   },
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
     "preview": {
-      "distribution": "internal"
+      "android": {
+        "buildType": "apk",
+        "image": "latest"
+      }
     },
-    "production": {}
+    "preview2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "preview3": {
+      "developmentClient": true
+    },
+    "production": {
+      "channel": "production"
+    }
   },
   "submit": {
     "production": {}
